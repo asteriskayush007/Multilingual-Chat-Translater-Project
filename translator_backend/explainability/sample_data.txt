@@ -1,0 +1,6 @@
+I love this product - Positive
+This is amazing - Positive
+I hate this - Negative
+This is terrible - Negative
+Worst experience ever - Negative
+I really like it - Positive
