@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+deep-translator
+transformers
+torch
+sacrebleu
+langdetect
+python-multipart
+python-dotenv
