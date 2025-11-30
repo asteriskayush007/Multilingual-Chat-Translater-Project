@@ -66,12 +66,12 @@ Realtime-Multilingual-Chat/
 # 📸 **Screenshots**
 (Add your screenshots here manually)
 
-```
+
 ![Chat Screenshot](images/Chat A.png)
 ![Chat Screenshot](images/Chat B.png)
 ![Latency](images/Latency.png)
 ![BLEU Score](images/BLEU.png)
-```
+
 
 ---
 
