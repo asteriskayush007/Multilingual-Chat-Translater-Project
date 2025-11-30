@@ -63,6 +63,103 @@ Realtime-Multilingual-Chat/
 
 ---
 
+## 🧠 Model Explainability (LIME & SHAP)
+
+Although this project is mainly focused on **text translation**, we included a small **text classification demo model** to showcase explainability techniques.
+This helps reviewers understand how AI decisions can be interpreted in real-world NLP systems.
+
+We implemented **two explainability tools**:
+
+---
+
+# 🔷 1. SHAP (SHapley Additive Explanations)
+
+SHAP helps us understand **which words contribute most** to a prediction.
+
+### 📌 How SHAP Works in Our Project
+
+1. A small Logistic Regression model is trained on example sentences:
+
+   * Positive class
+   * Negative class
+2. SHAP analyzes each word’s contribution.
+3. It generates a local explanation plot showing:
+
+   * 🔵 Words pushing prediction UP
+   * 🔴 Words pushing prediction DOWN
+
+### ▶️ Run SHAP Demo
+
+```bash
+cd translator_backend/explainability
+python3 shap_demo.py
+```
+
+### 📤 Output
+
+* SHAP force plot saved as:
+
+```
+shap_output.png
+```
+
+---
+
+# 🔶 2. LIME (Local Interpretable Model-Agnostic Explanations)
+
+LIME highlights **which words influenced the final prediction** for a given input sentence.
+
+### 📌 How LIME Works in Our Project
+
+1. Uses the same small classification model.
+2. Perturbs the input text.
+3. Checks how output changes.
+4. Creates a feature-importance table.
+
+### ▶️ Run LIME Demo
+
+```bash
+cd translator_backend/explainability
+python3 lime_demo.py
+```
+
+### 📤 Output
+
+* LIME explanation saved as:
+
+```
+lime_output.html
+```
+
+(You can open it directly in a browser.)
+
+---
+
+# 📁 File Structure
+
+```
+translator_backend/
+   └── explainability/
+           ├── shap_demo.py
+           ├── lime_demo.py
+           ├── shap_output.png
+           └── lime_output.html
+```
+
+---
+
+# 🎯 Why Add Explainability?
+
+Even though the core project is a **translation system**, explainability is:
+
+* ✔ Mandatory for many academic + company evaluations
+* ✔ Shows you understand ML ethics & transparency
+* ✔ Demonstrates ability to justify model predictions
+* ✔ Provides depth to your overall submission
+
+
+---
+
 # 📸 **Screenshots**
 (Add your screenshots here manually)
 
@@ -70,6 +167,8 @@ Realtime-Multilingual-Chat/
 ![Chat Screenshot](images/ChatA.png)
 ![Chat Screenshot](images/ChatB.png)
 ![Latency](images/Latency.png)
+![Lime Model](images/lime.png)
+![Shap Model](images/Shap.png)
 ![BLEU Score](images/BLEU.png)
 
 
