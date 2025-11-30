@@ -67,9 +67,10 @@ Realtime-Multilingual-Chat/
 (Add your screenshots here manually)
 
 ```
-![Chat Screenshot](./screenshots/chat.png)
-![Latency](./screenshots/latency.png)
-![BLEU Score](./screenshots/bleu.png)
+![Chat Screenshot](images/Chat A.png)
+![Chat Screenshot](images/Chat B.png)
+![Latency](images/Latency.png)
+![BLEU Score](images/BLEU.png)
 ```
 
 ---
