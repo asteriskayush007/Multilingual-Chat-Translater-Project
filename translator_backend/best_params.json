@@ -1,0 +1,7 @@
+{
+    "num_beams": 2,
+    "max_length": 110,
+    "length_penalty": 0.7980079902585684,
+    "no_repeat_ngram_size": 2
+  }
+  

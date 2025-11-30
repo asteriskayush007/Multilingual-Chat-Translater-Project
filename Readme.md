@@ -174,6 +174,77 @@ Even though the core project is a **translation system**, explainability is:
 
 ---
 
+## 🔧 Translation Model Optimization (BLEU + Latency)
+
+To improve the overall translation quality and responsiveness of the system, we performed
+**Hyperparameter Optimization** using three different strategies:
+
+### 1. Grid Search  
+Exhaustively tested all possible combinations of:
+- `num_beams = [1, 2, 4]`
+- `max_length = [60, 80]`
+- `length_penalty = [0.6, 1.0]`
+- `no_repeat_ngram_size = [0, 2]`
+
+**Best Grid Result**
+- **num_beams:** 2  
+- **max_length:** 60  
+- **length_penalty:** 1.0  
+- **no_repeat_ngram_size:** 0  
+- **BLEU Score:** 16.47  
+- **Latency:** ~257 ms  
+
+---
+
+### 2. Random Search (30 Trials)
+Randomly sampled from a wider search space for:
+- `num_beams = 1–6`
+- `max_length = 50–120`
+- `length_penalty = 0.6–1.2`
+- `no_repeat_ngram_size = 0–3`
+
+**Best Random Search Result**
+- **num_beams:** 2  
+- **max_length:** 100  
+- **length_penalty:** 1.2  
+- **no_repeat_ngram_size:** 1  
+- **BLEU:** 16.47  
+- **Latency:** ~255 ms  
+
+---
+
+### 3. Bayesian Optimization (Optuna — 40 Trials)
+Used Optuna to automatically explore the best balance between:
+- Translation accuracy (BLEU)
+- Speed (Latency)
+- Model stability
+
+**Best Optuna Result**
+- **num_beams:** 2  
+- **max_length:** 110  
+- **length_penalty:** 0.79  
+- **no_repeat_ngram_size:** 2  
+- **Final Score:** 16.458  
+- **Latency:** ~254 ms  
+
+---
+
+### 📌 Summary: Optimal Hyperparameters (Final Recommended)
+Based on all experiments:
+
+| Parameter              | Best Value |
+|-----------------------|-----------|
+| **num_beams**         | 2 |
+| **max_length**        | 100–110 |
+| **length_penalty**    | 0.8–1.2 |
+| **no_repeat_ngram_size** | 1–2 |
+
+These settings provide the **best trade-off between translation quality (BLEU) and speed (Latency)** for real-time WebSocket chat translation.
+
+
+
+---
+
 # ⚙️ **Setup Instructions**
 
 ## 1️⃣ Backend Setup (FastAPI)

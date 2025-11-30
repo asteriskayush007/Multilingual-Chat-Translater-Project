@@ -1,0 +1,11 @@
+{
+  "score": 16.457958456581995,
+  "params": {
+    "num_beams": 2,
+    "max_length": 60,
+    "length_penalty": 1.0,
+    "no_repeat_ngram_size": 0
+  },
+  "bleu": 16.47084141098226,
+  "latency": 257.6590880053118
+}

@@ -14,13 +14,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class ConnectionManager:
     def __init__(self):
-        self.active_connections = []
-        self.users = {}
+        self.active_connections = []       # Active socket objects
+        self.users = {}                    # socket -> username
+        self.user_lang = {}                # username -> language
 
     async def connect(self, websocket: WebSocket, username: str):
-        # 🔥 Remove old duplicate connections of SAME USER
+        """
+        Ensures ONE clean active connection per user.
+        """
+
+        # Close any old connection by same user
         for conn in list(self.active_connections):
             if self.users.get(conn) == username:
                 try:
@@ -30,43 +36,40 @@ class ConnectionManager:
                 self.active_connections.remove(conn)
                 self.users.pop(conn, None)
 
-        # NEW CLEAN CONNECTION
+        # Accept new connection
         await websocket.accept()
         self.active_connections.append(websocket)
         self.users[websocket] = username
 
-    def __init__(self):
-        self.active_connections = []      
-        self.users = {}                  
-        self.user_lang = {}              
-
-    async def connect(self, websocket: WebSocket, username: str):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-        self.users[websocket] = username
-
+        # Default language
         if username not in self.user_lang:
             self.user_lang[username] = "en"
 
     def disconnect(self, websocket: WebSocket):
+        """Clean disconnect."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
         self.users.pop(websocket, None)
 
     async def broadcast_per_receiver(self, sender_username: str, original_text: str, do_translate: bool = True):
+        """
+        Translate according to EACH receiver's preferred language.
+        Calculates latency for translation.
+        """
+
         for conn in list(self.active_connections):
             try:
                 receiver = self.users.get(conn)
                 target_lang = self.user_lang.get(receiver, "en")
 
-                # Start measuring latency
+                # Start latency timer
                 start = time.time()
 
                 # Translation
                 if do_translate:
                     try:
                         translated_text = GoogleTranslator(
-                            source="auto", 
+                            source="auto",
                             target=target_lang
                         ).translate(original_text)
                     except Exception:
@@ -74,8 +77,8 @@ class ConnectionManager:
                 else:
                     translated_text = original_text
 
-                # End latency measurement
-                latency = (time.time() - start) * 1000  # ms
+                # End latency
+                latency = (time.time() - start) * 1000
 
                 payload = {
                     "sender": sender_username,
@@ -87,8 +90,10 @@ class ConnectionManager:
                 }
 
                 await conn.send_json(payload)
+
             except Exception:
                 pass
+
 
 
 manager = ConnectionManager()
@@ -102,15 +107,14 @@ async def websocket_endpoint(websocket: WebSocket, user: str):
         while True:
             data = await websocket.receive_json()
 
-            # User announces language
+            # User sets language
             if data.get("type") == "set_lang":
                 lang = data.get("lang", "en")
                 manager.user_lang[user] = lang
-
                 await websocket.send_json({"type": "lang_ack", "lang": lang})
                 continue
 
-            # Chat message
+            # User sends message
             if data.get("type") == "message":
                 original_text = data.get("text", "")
                 do_translate = data.get("translate", True)
