@@ -13,54 +13,65 @@ export default function ChatBox({ user }) {
   const chatRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Connect websocket safely
+  // ⭐ SAFE WEBSOCKET INIT
   useEffect(() => {
     if (ws.current) {
-      try { ws.current.close(); } catch {}
+      try { ws.current.close(); } catch (e) {}
     }
 
-    const socket = new WebSocket(
-        `wss://multilingual-chat-translater-project.onrender.com/ws/${user}`
-      );
-      
+    const socket = new WebSocket(`ws://127.0.0.1:8000/ws/${user}`);
     ws.current = socket;
 
     socket.onopen = () => {
-      socket.send(JSON.stringify({ type: "set_lang", lang: myLang }));
+      socket.send(
+        JSON.stringify({
+          type: "set_lang",
+          lang: myLang
+        })
+      );
     };
 
     socket.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === "lang_ack") return;
-      setMessages(prev => [...prev, msg]);
+      setMessages((prev) => [...prev, msg]);
     };
+
+    socket.onerror = (err) => console.log("WS Error:", err);
+
+    socket.onclose = () => console.log("WS closed");
 
     return () => {
       try { socket.close(); } catch {}
     };
   }, [user, myLang]);
 
-  // Auto scroll
+  // Scroll bottom
   useEffect(() => {
-    if (chatRef.current) {
+    if (chatRef.current)
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
   }, [messages]);
 
-  // Send message
+  // ⭐ SAFE SEND (no red screen)
   const sendMessage = () => {
     if (!text.trim()) return;
-    if (!ws.current || ws.current.readyState !== 1) return;
+    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
+      console.log("⚠ WS not open yet");
+      return;
+    }
 
-    ws.current.send(JSON.stringify({
-      type: "message",
-      text,
-      translate: translateOption,
-    }));
+    ws.current.send(
+      JSON.stringify({
+        type: "message",
+        text,
+        translate: translateOption
+      })
+    );
 
     setText("");
   };
 
+  // Enter to send
   const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -68,46 +79,38 @@ export default function ChatBox({ user }) {
     }
   };
 
-  // Download chat screenshot
+  // Download chat as image
   const downloadChat = async () => {
     const canvas = await html2canvas(containerRef.current, {
-      backgroundColor: "#111827",
-      scale: 2,
+      backgroundColor: null,
+      scale: 2
     });
     const link = document.createElement("a");
     link.download = `chat_${user}.png`;
-    link.href = canvas.toDataURL("image/png");
+    link.href = canvas.toDataURL();
     link.click();
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4"
-    >
+    <div ref={containerRef} className="flex flex-col h-screen bg-gray-900 text-white p-4">
 
-      {/* HEADER */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex justify-between items-center mb-4"
-      >
-        <h2 className="text-xl font-semibold">👤 Logged in as: {user}</h2>
-
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3">
+        <h2>Logged in as: {user}</h2>
         <button
           onClick={downloadChat}
-          className="px-4 py-2 bg-green-600 hover:bg-green-500 transition rounded-lg shadow-lg"
+          className="px-3 py-1 bg-green-600 rounded"
         >
           📥 Download Chat
         </button>
-      </motion.div>
+      </div>
 
-      {/* LANGUAGE + TOGGLE */}
-      <div className="flex gap-3 mb-4 items-center">
+      {/* Lang + Toggle */}
+      <div className="flex gap-2 mb-3 items-center">
         <select
+          className="p-2 rounded text-black"
           value={myLang}
           onChange={(e) => setMyLang(e.target.value)}
-          className="p-2 rounded bg-gray-100 text-black shadow"
         >
           <option value="en">English</option>
           <option value="hi">Hindi</option>
@@ -116,7 +119,7 @@ export default function ChatBox({ user }) {
           <option value="mr">Marathi</option>
         </select>
 
-        <label className="flex items-center gap-2 text-gray-300">
+        <label className="flex items-center gap-1 text-black">
           <input
             type="checkbox"
             checked={translateOption}
@@ -126,14 +129,9 @@ export default function ChatBox({ user }) {
         </label>
       </div>
 
-      {/* CHAT WINDOW */}
-      <div
-        ref={chatRef}
-        className="flex-1 overflow-auto rounded-lg p-4 bg-gray-800 bg-opacity-40 backdrop-blur-lg shadow-inner"
-      >
-        {messages.length === 0 && (
-          <p className="text-gray-400 text-center mt-10">Start chatting…</p>
-        )}
+      {/* Chat messages */}
+      <div ref={chatRef} className="flex-1 overflow-auto bg-gray-800 p-4 rounded mb-3">
+        {messages.length === 0 && <p className="text-gray-400">Start chatting…</p>}
 
         {messages.map((msg, i) => {
           const isMe = msg.sender === user;
@@ -142,46 +140,35 @@ export default function ChatBox({ user }) {
           return (
             <motion.div
               key={i}
-              initial={{ opacity: 0, x: isMe ? 50 : -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={`mb-3 flex ${isMe ? "justify-end" : "justify-start"}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex mb-2 ${isMe ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`
-                  max-w-xs px-4 py-2 rounded-xl shadow-md 
-                  ${isMe
-                    ? "bg-blue-600 text-white rounded-br-none"
-                    : "bg-gray-700 text-white rounded-bl-none"}
-                `}
+                className={`px-3 py-2 max-w-xs rounded-lg ${
+                  isMe ? "bg-blue-600 rounded-br-none" : "bg-gray-600 rounded-bl-none"
+                }`}
               >
-                <div>{textToShow}</div>
-
-                {/* Latency Display */}
-                {msg.latency && (
-                  <div className="text-[10px] opacity-60 mt-1">
-                    ⏱ {msg.latency} ms
-                  </div>
-                )}
+                {textToShow}
               </div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* INPUT BOX */}
-      <div className="mt-3 flex gap-3 items-center">
+      {/* Input */}
+      <div className="flex gap-2">
         <textarea
           rows={2}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKey}
-          className="flex-1 p-3 rounded-lg text-black resize-none shadow-lg"
-          placeholder="Type your message..."
+          className="flex-1 p-2 rounded text-black"
+          placeholder="Type a message..."
         />
-
         <button
           onClick={sendMessage}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 shadow-lg rounded-xl transition text-white font-semibold"
+          className="px-4 py-2 bg-blue-600 rounded"
         >
           Send
         </button>
