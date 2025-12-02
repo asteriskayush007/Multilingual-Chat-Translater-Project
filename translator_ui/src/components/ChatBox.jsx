@@ -19,7 +19,7 @@ export default function ChatBox({ user }) {
       try { ws.current.close(); } catch (e) {}
     }
 
-    const socket = new WebSocket(`ws://127.0.0.1:8000/ws/${user}`);
+    const socket = new WebSocket(`wss://multilingual-chat-translater-project.onrender.com/ws/${user}`);
     ws.current = socket;
 
     socket.onopen = () => {
